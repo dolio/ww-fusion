@@ -135,6 +135,18 @@ filter :: (a -> Bool) -> [a] -> [a]
 filter p = \xs -> buildWStatic (filterFB p xs)
 {-# INLINE filter #-}
 
+filterFB
+  :: (a -> Bool)
+  -> [a]
+  -> (Wrap f r)
+  -> (a -> r -> r)
+  -> r
+  -> r
+filterFB p xs ww cons nil = foldrW ww f nil xs
+  where
+    f x y = if p x then cons x y else y
+{-# INLINE[0] filterFB #-}
+
 eft :: Int -> Int -> [Int]
 eft = \from to -> buildWStatic (eftFB from to)
 {-# INLINE eft #-}
@@ -152,18 +164,6 @@ eftFB from to (Wrap wrap unwrap) cons nil = wrap go from nil
       then cons i $ wrap go (i + 1) rest
       else rest
 {-# INLINE[0] eftFB #-}
-
-filterFB
-  :: (a -> Bool)
-  -> [a]
-  -> (Wrap f r)
-  -> (a -> r -> r)
-  -> r
-  -> r
-filterFB p xs ww cons nil = foldrW ww f nil xs
-  where
-    f x y = if p x then cons x y else y
-{-# INLINE[0] filterFB #-}
 
 dropWhile :: (a -> Bool) -> [a] -> [a]
 dropWhile p xs = buildW $ dwFB p xs
